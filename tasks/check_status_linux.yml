@@ -1,0 +1,54 @@
+---
+- name: Check for install on RedHat
+  block:
+    - name: Search for rpm
+      ansible.builtin.shell:
+        cmd: rpm -qa | grep "VMware-Log-Insight-Agent" | wc -l
+      register: rpm_output
+
+    - name: Disply command output
+      ansible.builtin.debug:
+        msg: "{{ rpm_output.stdout }}"
+
+    - name: Set fact for install_state to false
+      ansible.builtin.set_fact:
+        need_install: true
+      when: rpm_output.stdout |int == 0
+
+    - name: Set fact for install_state to true
+      ansible.builtin.set_fact:
+        need_install: false
+      when: rpm_output.stdout |int == 1
+  when: ansible_distribution == "RedHat"
+
+# - Check for install on Ubuntu
+#   block:
+#     - name: Search for rpm
+#       ansible.builtin.shell:
+#         cmd: apt list --installed | grep vmware-log-insight-agent | wc -l
+#       register: check_output
+
+#     - name: Disply command output
+#       ansible.builtin.debug:
+#         msg: "{{ check_output.stdout }}"
+
+#     - name: Set fact for install_state to false
+#       ansible.builtin.set_fact:
+#         need_install: true
+#       when: check_output.stdout |int == 0
+
+#     - name: Set fact for install_state to true
+#       ansible.builtin.set_fact:
+#         need_install: false
+#       when: check_output.stdout |int == 1
+#   when: ansible_distribution == "Ubuntu"
+
+- name: Tell me it needs to be installed
+  ansible.builtin.debug:
+    msg: "Log Insight needs to be installed on {{ inventory_hostname }}"
+  when: need_install
+
+- name: Tell me it is installed alredy
+  ansible.builtin.debug:
+    msg: "{{ inventory_hostname }} already has Log Insight installed"
+  when: not need_install

@@ -1,0 +1,33 @@
+---
+- name: Verify install state
+  block:
+    - name: Include task for install_status
+      include_tasks: check_status_linux.yml
+      
+- name: Install software
+  block:
+    - name: create directory for rpm packages
+      ansible.builtin.file:
+        path: "{{ installer_dir }}"
+        recurse: true
+        state: directory
+
+    - name: copy installer to installer directory
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: "{{ installer_dir }}/"
+      with_fileglob:
+            - "*{{ installer_version }}*.rpm"
+
+    - name: run installer
+      ansible.builtin.shell:
+        cmd: "rpm -Uvh {{ installer_dir}}/*{{ installer_version }}*.rpm"
+      environment:
+        SERVERHOST: "{{ loginsight_host }}"
+        LIAGENT_AUTOUPDATE: "yes"
+
+    - name: remove installer directory
+      file:
+        path: "{{ installer_dir }}"
+        state: absent
+  when: need_install

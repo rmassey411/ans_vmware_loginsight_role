@@ -1,0 +1,12 @@
+---
+- name: create installer directory
+  ansible.windows.win_file:
+    path: "{{ install_dir }}"
+    state: directory
+  
+- name: copy installer to installer directory
+  ansible.windows.win_copy:
+    src: "{{ item }}"
+    dest: "{{ install_dir }}"
+  with_fileglob:
+    - "*{{ installer_version }}*.msi"
